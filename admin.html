@@ -784,11 +784,35 @@
   document.addEventListener("visibilitychange", () => { if (document.hidden) stopCam(); });
 
   // ---------- Init ----------
-  loadState();
-  $("storeName").value = state.storeName;
-  $("storeUrl").value = state.storeUrl;
-  refreshAll();
-  showProductQR(state.products[0]);
+  (async function init() {
+    loadState();
+
+    // Firebase is the master copy: load the latest list from it every time
+    if (cloudEnabled()) {
+      try {
+        const res = await fetch(CLOUD_DB_URL.replace(/\/$/, "") + "/products.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        state.products = data ? Object.values(data) : [];
+      } catch (err) {
+        toast("Offline: showing last saved list");
+      }
+    }
+
+    // Make sure new IDs and QR numbers never clash with existing ones
+    const maxId = Math.max(0, ...state.products.map(p => Number(p.id) || 0));
+    let nextId = maxId + 1;
+    state.products.forEach(p => { if (!p.id) p.id = nextId++; });
+    state.nextId = Math.max(state.nextId || 1, nextId);
+
+    const maxSeq = Math.max(0, ...state.products.map(p => parseInt(String(p.qrNo).replace(/\D/g, ""), 10) || 0));
+    state.nextQrSeq = Math.max(state.nextQrSeq || 1, maxSeq + 1);
+
+    $("storeName").value = state.storeName;
+    $("storeUrl").value = state.storeUrl;
+    refreshAll();
+    if (state.products.length) showProductQR(state.products[0]);
+  })();
 })();
 </script>
 </body>
