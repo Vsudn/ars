@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover">
+<meta name="theme-color" content="#f9a8d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ARS Super Store - QR</title>
+<style>
+  :root {
+    --pink: #fce7f3;
+    --pink-deep: #f9a8d4;
+    --pink-dark: #db2777;
+    --card: #ffffff;
+    --text: #000000;
+    --muted: #374151;
+    --border: #f3c4dd;
+    --danger: #dc2626;
+    --ok: #15803d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--pink);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-size: 16px;
+    line-height: 1.45;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  }
+  header {
+    background: var(--pink-dark);
+    color: #fff;
+    padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: .3px; }
+  header p { font-size: .78rem; opacity: .95; margin-top: 2px; }
+
+  main { padding: 14px; max-width: 640px; margin: 0 auto; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  h2 { font-size: 1.1rem; margin-bottom: 10px; }
+  label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
+  input, select, textarea {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--text);
+    font-size: 16px; /* prevents iOS zoom */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select { background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%); background-position: calc(100% - 20px) 21px, calc(100% - 15px) 21px; background-size: 5px 5px; background-repeat: no-repeat; }
+  input:focus, select:focus { outline: 2px solid var(--pink-dark); border-color: transparent; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 48px; padding: 0 16px;
+    border: none; border-radius: 12px;
+    background: var(--pink-dark); color: #fff;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; width: 100%;
+    text-decoration: none;
+    transition: transform .08s, opacity .2s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .45; }
+  .btn.ghost { background: #fff; color: var(--pink-dark); border: 2px solid var(--pink-dark); }
+  .btn.dark { background: #111827; }
+  .btn.sm { min-height: 38px; font-size: .88rem; width: auto; padding: 0 12px; border-radius: 10px; }
+  .btn.danger { background: #fff; color: var(--danger); border: 2px solid var(--danger); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-row > * { flex: 1 1 auto; }
+
+  .muted { color: var(--muted); font-size: .88rem; }
+  .qr-no { font-weight: 800; font-size: 1.05rem; letter-spacing: .4px; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 999px; background: var(--pink); color: var(--muted); font-size: .78rem; font-weight: 600; }
+  .error { color: var(--danger); font-size: .88rem; min-height: 1.2em; margin-top: 8px; }
+
+  /* Products list */
+  .search-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 12px; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; }
+  .stat strong { display: block; font-size: 1.25rem; color: var(--pink-dark); }
+  .stat span { font-size: .78rem; color: var(--muted); }
+  .product {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .qr-thumb { width: 78px; height: 78px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .qr-thumb img, .qr-thumb canvas { width: 72px !important; height: 72px !important; }
+  .product-info .name { font-weight: 800; font-size: 1rem; }
+  .product-info .meta { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+  .product-info .price { font-weight: 800; margin-top: 4px; }
+  .low { color: var(--danger); font-weight: 700; }
+  .product .btn-row { margin-top: 8px; }
+  .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+
+  /* QR view */
+  .qr-stage {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 280px; border: 2px dashed var(--border); border-radius: 14px; padding: 14px; background: #fff;
+  }
+  .qr-stage canvas, .qr-stage img { width: 240px; height: 240px; max-width: 100%; height: auto; }
+  .result-name { font-weight: 800; font-size: 1.1rem; margin-top: 12px; text-align: center; }
+  .result-sub { font-size: .88rem; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  /* Scan */
+  #camVideo { width: 100%; border-radius: 14px; background: #000; display: none; aspect-ratio: 3 / 4; object-fit: cover; }
+  .scan-box { position: relative; }
+  .file-btn { position: relative; overflow: hidden; }
+  .file-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .result { margin-top: 12px; }
+  .result .big { font-weight: 800; font-size: 1.1rem; word-break: break-word; }
+
+  /* Bottom nav */
+  nav.bottom {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: #fff;
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -2px 10px rgba(0,0,0,.05);
+  }
+  nav.bottom button {
+    background: none; border: none; color: var(--muted);
+    padding: 10px 4px 12px; font-size: .75rem; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; min-height: 62px;
+  }
+  nav.bottom button .ic { font-size: 1.35rem; line-height: 1; }
+  nav.bottom button.active { color: var(--pink-dark); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: #111827; color: #fff; padding: 10px 16px; border-radius: 10px;
+    font-size: .9rem; opacity: 0; pointer-events: none; transition: opacity .25s;
+    max-width: 90vw; text-align: center; z-index: 40;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (min-width: 560px) {
+    .search-row { grid-template-columns: 2fr 1fr; }
+  }
+  @media print {
+    header, nav.bottom, .no-print, .toast { display: none !important; }
+    body { background: #fff; padding: 0; }
+    .view { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ARS Super Store</h1>
+  <p>Vadalure, Cuddalore, Tamil Nadu 607303</p>
+</header>
+
+<main>
+
+  <!-- ============ PRODUCTS ============ -->
+  <section class="view active" id="view-products">
+    <div id="cloudStatus" class="muted" style="text-align:center;margin-bottom:10px;font-weight:700;">Connecting to cloud…</div>
+    <div class="stats">
+      <div class="stat"><strong id="statTotal">0</strong><span>Products</span></div>
+      <div class="stat"><strong id="statLow">0</strong><span>Low stock (&lt;10)</span></div>
+    </div>
+    <div class="search-row">
+      <input id="search" type="search" placeholder="Search name, SKU or QR No">
+      <select id="filterCat"><option value="">All categories</option></select>
+    </div>
+    <div id="productList"></div>
+    <p class="empty" id="emptyMsg" style="display:none;">No products found.</p>
+
+    <div class="card no-print" style="margin-top:18px;">
+      <h2>Store settings</h2>
+      <label for="storeName">Store name</label>
+      <input id="storeName" value="ARS Super Store">
+      <label for="storeUrl">Base URL for product QR links (optional)</label>
+      <input id="storeUrl" type="url" placeholder="https://www.yourstore.com/product/">
+      <div class="btn-row">
+        <button class="btn ghost" id="exportBtn">Export catalog</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="syncAllBtn">Sync all to website</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ADD / EDIT ============ -->
+  <section class="view" id="view-add">
+    <div class="card">
+      <h2 id="formTitle">Add product</h2>
+      <form id="productForm" autocomplete="off">
+        <label for="pName">Product name *</label>
+        <input id="pName" placeholder="e.g. Basmati Rice 5kg" required>
+
+        <div class="row">
+          <div>
+            <label for="pSku">SKU / barcode *</label>
+            <input id="pSku" placeholder="SS-1001" required>
+          </div>
+          <div>
+            <label for="pCategory">Category</label>
+            <select id="pCategory">
+              <option>Grocery</option>
+              <option>Dairy</option>
+              <option>Beverages</option>
+              <option>Snacks</option>
+              <option>Fruits &amp; Vegetables</option>
+              <option>Personal Care</option>
+              <option>Household</option>
+              <option>Frozen</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="pPrice">Price (₹) *</label>
+            <input id="pPrice" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00" required>
+          </div>
+          <div>
+            <label for="pStock">Stock qty</label>
+            <input id="pStock" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <label for="pDesc">Description</label>
+        <input id="pDesc" placeholder="Short description">
+
+        <div class="btn-row">
+          <button class="btn" type="submit" id="submitBtn">Save &amp; generate QR</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" type="button" id="cancelEdit" style="display:none;">Cancel edit</button>
+        </div>
+        <div class="error" id="formError"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ QR GENERATOR ============ -->
+  <section class="view" id="view-qr">
+    <div class="card">
+      <h2>QR code</h2>
+      <div class="qr-stage" id="qrBox">
+        <p class="muted">Tap "QR" on a product to show its code here.</p>
+      </div>
+      <div class="result-name" id="qrName"></div>
+      <div class="qr-no result-sub" id="qrNumber"></div>
+      <div class="result-sub" id="qrSub"></div>
+      <div class="btn-row no-print">
+        <button class="btn" id="downloadPng">Download PNG</button>
+        <button class="btn ghost" id="printQr">Print label</button>
+      </div>
+    </div>
+
+    <div class="card no-print">
+      <h2>Custom QR (any text or link)</h2>
+      <label for="customText">Text or URL</label>
+      <input id="customText" type="text" placeholder="https://yourstore.com/offers">
+      <div class="btn-row">
+        <button class="btn dark" id="customBtn">Generate QR</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCANNER ============ -->
+  <section class="view" id="view-scan">
+    <div class="card">
+      <h2>QR reader</h2>
+      <div class="scan-box">
+        <video id="camVideo" playsinline muted></video>
+      </div>
+      <p class="muted" id="camHint" style="margin-top:8px;">Camera is off.</p>
+      <div class="btn-row">
+        <button class="btn" id="camStart">Start camera</button>
+        <button class="btn ghost" id="camStop" disabled>Stop</button>
+      </div>
+      <div class="btn-row">
+        <label class="btn ghost file-btn">Upload QR photo
+          <input type="file" id="qrFile" accept="image/*">
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="manualQr" style="margin-top:0;">Or type a QR No / text</label>
+      <div class="btn-row" style="margin-top:6px;">
+        <input id="manualQr" placeholder="ARS-QR-0001" style="flex:2 1 180px;">
+        <button class="btn sm" id="manualBtn" style="flex:1 1 80px;min-height:48px;">Read</button>
+      </div>
+      <div class="result" id="readResult">
+        <p class="muted">Scan a QR code to see the product here.</p>
+      </div>
+    </div>
+    <canvas id="scanCanvas" style="display:none;"></canvas>
+  </section>
+
+  <!-- ============ BILLING ============ -->
+  <section class="view" id="view-bill">
+    <div class="card">
+      <h2>Scan product QR</h2>
+      <video id="billVideo" playsinline muted style="width:100%;border-radius:14px;background:#000;display:none;aspect-ratio:3/4;object-fit:cover;"></video>
+      <p class="muted" id="billScanHint" style="margin-top:8px;">Scanner is off.</p>
+      <div class="btn-row">
+        <button class="btn" id="billScanStart">Start scanner</button>
+        <button class="btn ghost" id="billScanStop" disabled>Stop</button>
+      </div>
+      <div class="btn-row">
+        <label class="btn ghost" style="cursor:pointer;position:relative;overflow:hidden;">Upload QR photo
+          <input type="file" id="billQrFile" accept="image/*" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;">
+        </label>
+      </div>
+      <div id="billScanWarn" style="color:var(--danger);font-weight:700;margin-top:8px;font-size:.9rem;"></div>
+      <canvas id="billCanvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>New bill</h2>
+      <input id="billSearch" type="search" placeholder="Search product or SKU, or type QR No and press Enter" autocomplete="off">
+      <div id="billSuggest" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Cart</h2>
+      <div id="cartList"><p class="muted">No items yet. Search above to add products.</p></div>
+      <div class="row" style="margin-top:12px;">
+        <div>
+          <label for="billDiscount">Discount on whole cart</label>
+          <div style="display:flex;gap:6px;">
+            <input id="billDiscount" type="number" inputmode="decimal" min="0" value="0" style="flex:1;">
+            <select id="billDiscountType" style="flex:0 0 74px;"><option value="amt">₹</option><option value="pct">%</option></select>
+          </div>
+        </div>
+        <div>
+          <label for="billPayment">Payment</label>
+          <select id="billPayment"><option>Cash</option><option>UPI</option><option>Card</option></select>
+        </div>
+      </div>
+      <label for="billCustomer">Customer name / phone (optional)</label>
+      <input id="billCustomer" placeholder="Optional">
+      <label for="billOffer">Offer name (optional, printed on receipt)</label>
+      <input id="billOffer" placeholder="e.g. Pongal offer">
+      <div style="margin-top:14px;padding:12px;border-radius:12px;background:var(--pink);">
+        <div class="muted" id="cartSub">Subtotal ₹0.00 · Discount ₹0.00</div>
+        <div style="font-size:1.4rem;font-weight:800;color:var(--pink-dark);" id="cartTotal">₹0.00</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="completeBill">Complete bill</button>
+        <button class="btn ghost" id="clearCart">Clear</button>
+      </div>
+    </div>
+
+    <div class="card" id="receiptCard" style="display:none;">
+      <h2>Last bill</h2>
+      <p class="muted" id="receiptMeta"></p>
+      <div class="btn-row">
+        <button class="btn" id="printReceipt">Print receipt</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Today's sales</h2>
+      <div class="stats" id="salesSummary"></div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom no-print">
+  <button data-view="view-products" class="active"><span class="ic">🛒</span>Products</button>
+  <button data-view="view-add"><span class="ic">➕</span>Add</button>
+  <button data-view="view-qr"><span class="ic">▦</span>QR</button>
+  <button data-view="view-scan"><span class="ic">📷</span>Scan</button>
+  <button data-view="view-bill"><span class="ic">🧾</span>Bill</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" onerror="loadBackupJsQR()"></script>
+<script>
+  function loadBackupJsQR() {
+    var s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
+    document.head.appendChild(s);
+  }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const money = (n) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const STORE_KEY = "arsSuperStore_v2";
+  // Paste your Firebase Realtime Database URL here, e.g. https://your-project-default-rtdb.firebaseio.com
+  const CLOUD_DB_URL = "https://ars-super-store-default-rtdb.firebaseio.com";
+
+  // ---------- Data ----------
+  const SAMPLE = [
+    { id: 1, name: "Basmati Rice 5kg", sku: "SS-1001", category: "Grocery", price: 540, stock: 120, desc: "Premium long grain" },
+    { id: 2, name: "Full Cream Milk 1L", sku: "SS-2001", category: "Dairy", price: 68, stock: 45, desc: "Pasteurised" },
+    { id: 3, name: "Orange Juice 1L", sku: "SS-3001", category: "Beverages", price: 120, stock: 8, desc: "100% fruit" },
+    { id: 4, name: "Potato Chips Classic", sku: "SS-4001", category: "Snacks", price: 30, stock: 200, desc: "Lightly salted" },
+    { id: 5, name: "Fresh Bananas 1kg", sku: "SS-5001", category: "Fruits & Vegetables", price: 60, stock: 3, desc: "Farm fresh" }
+  ];
+
+  let state = { products: [], nextId: 1, nextQrSeq: 1, storeName: "ARS Super Store", storeUrl: "" };
+  let editingId = null;
+  let currentQR = null;
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) { state = { ...state, ...JSON.parse(raw) }; return; }
+    } catch (e) { /* storage unavailable: fall back to memory */ }
+    state.products = SAMPLE.map((p, i) => ({ ...p, qrNo: "ARS-QR-" + String(i + 1).padStart(4, "0") }));
+    state.nextId = SAMPLE.length + 1;
+    state.nextQrSeq = SAMPLE.length + 1;
+  }
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+
+  // ---------- Cloud sync (uploads to the QR reader website's database) ----------
+  function cloudEnabled() {
+    return CLOUD_DB_URL && !CLOUD_DB_URL.includes("YOUR-PROJECT");
+  }
+
+  async function syncProduct(p) {
+    if (!cloudEnabled()) return;
+    try {
+      const url = `${CLOUD_DB_URL.replace(/\/$/, "")}/products/${encodeURIComponent(p.qrNo)}.json`;
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: p.id, qrNo: p.qrNo, name: p.name, sku: p.sku, category: p.category,
+          price: p.price, stock: p.stock, desc: p.desc || "",
+          store: state.storeName, qrUrl: productUrl(p),
+          updatedAt: new Date().toISOString()
+        })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      toast("Uploaded to QR reader website ✓");
+      $("cloudStatus").textContent = "✓ Last upload saved · " + p.qrNo;
+      $("cloudStatus").style.color = "#15803d";
+    } catch (err) {
+      toast("Upload failed. Check internet and database rules.");
+      $("cloudStatus").textContent = "⚠ Last upload FAILED · " + p.qrNo + " not on website";
+      $("cloudStatus").style.color = "#dc2626";
+    }
+  }
+
+  async function removeFromCloud(p) {
+    if (!cloudEnabled()) return;
+    try {
+      const url = `${CLOUD_DB_URL.replace(/\/$/, "")}/products/${encodeURIComponent(p.qrNo)}.json`;
+      const res = await fetch(url, { method: "DELETE" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+    } catch (err) {
+      toast("Could not remove from website");
+    }
+  }
+
+  async function syncAll() {
+    if (!cloudEnabled()) return toast("Set CLOUD_DB_URL in the code first");
+    let ok = 0;
+    for (const p of state.products) {
+      try {
+        const url = `${CLOUD_DB_URL.replace(/\/$/, "")}/products/${encodeURIComponent(p.qrNo)}.json`;
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: p.id, qrNo: p.qrNo, name: p.name, sku: p.sku, category: p.category,
+            price: p.price, stock: p.stock, desc: p.desc || "", store: state.storeName,
+            qrUrl: productUrl(p), updatedAt: new Date().toISOString() })
+        });
+        if (res.ok) ok++;
+      } catch (e) { /* counted as failed */ }
+    }
+    toast(`Synced ${ok} of ${state.products.length} products`);
+  }
+
+  // ---------- Helpers ----------
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+  }
+
+  function productUrl(p) {
+    const base = state.storeUrl.trim();
+    if (base) return base.replace(/\/?$/, "/") + encodeURIComponent(p.qrNo);
+    return p.qrNo; // short code: scans reliably from screens and paper
+  }
+
+  function showView(id) {
+    if (id === "view-bill") renderBill();
+    if (id !== "view-bill") stopBillScan();
+    document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === id));
+    document.querySelectorAll("nav.bottom button").forEach(b => b.classList.toggle("active", b.dataset.view === id));
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }
+  document.querySelectorAll("nav.bottom button").forEach(b =>
+    b.addEventListener("click", () => {
+      if (b.dataset.view !== "view-add") resetForm();
+      if (b.dataset.view !== "view-scan") stopCam();
+      showView(b.dataset.view);
+    })
+  );
+
+  // ---------- Products list ----------
+  function renderStats() {
+    $("statTotal").textContent = state.products.length;
+    $("statLow").textContent = state.products.filter(p => p.stock < 10).length;
+  }
+
+  function renderCategories() {
+    const sel = $("filterCat");
+    const cur = sel.value;
+    const cats = [...new Set(state.products.map(p => p.category))].sort();
+    sel.innerHTML = `<option value="">All categories</option>` + cats.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    sel.value = cats.includes(cur) ? cur : "";
+  }
+
+  function renderList() {
+    const q = $("search").value.trim().toLowerCase();
+    const cat = $("filterCat").value;
+    const list = state.products.filter(p =>
+      (!cat || p.category === cat) &&
+      (!q || [p.name, p.sku, p.qrNo, p.category].some(v => String(v).toLowerCase().includes(q)))
+    );
+    $("emptyMsg").style.display = list.length ? "none" : "block";
+    $("productList").innerHTML = list.map(p => `
+      <article class="product">
+        <div class="qr-thumb" data-text="${esc(productUrl(p))}"></div>
+        <div class="product-info">
+          <div class="name">${esc(p.name)}</div>
+          <div class="meta"><span class="qr-no">${esc(p.qrNo)}</span> · SKU ${esc(p.sku)}</div>
+          <div class="meta"><span class="tag">${esc(p.category)}</span></div>
+          <div class="price">${money(p.price)} · Stock: <span class="${p.stock < 10 ? "low" : ""}">${p.stock}</span></div>
+          <div class="btn-row">
+            <button class="btn sm" data-act="qr" data-id="${p.id}">Show QR</button>
+            <button class="btn sm ghost" data-act="edit" data-id="${p.id}">Edit</button>
+            <button class="btn sm danger" data-act="del" data-id="${p.id}">Delete</button>
+          </div>
+        </div>
+      </article>`).join("");
+
+    if (typeof QRCode !== "undefined") {
+      document.querySelectorAll("#productList .qr-thumb").forEach(el => {
+        new QRCode(el, { text: el.dataset.text, width: 72, height: 72, correctLevel: QRCode.CorrectLevel.M });
+      });
+    }
+  }
+
+  function refreshAll() {
+    renderStats();
+    renderCategories();
+    renderList();
+    saveState();
+  }
+
+  $("search").addEventListener("input", renderList);
+  $("filterCat").addEventListener("change", renderList);
+
+  $("productList").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    const p = state.products.find(x => x.id === id);
+    if (!p) return;
+
+    if (btn.dataset.act === "qr") {
+      showProductQR(p);
+      showView("view-qr");
+    } else if (btn.dataset.act === "edit") {
+      editingId = id;
+      $("pName").value = p.name;
+      $("pSku").value = p.sku;
+      $("pCategory").value = p.category;
+      $("pPrice").value = p.price;
+      $("pStock").value = p.stock;
+      $("pDesc").value = p.desc || "";
+      $("formTitle").textContent = `Edit product · ${p.qrNo}`;
+      $("submitBtn").textContent = "Update & regenerate QR";
+      $("cancelEdit").style.display = "flex";
+      showView("view-add");
+    } else if (btn.dataset.act === "del") {
+      if (confirm(`Delete "${p.name}" (${p.qrNo})?`)) {
+        state.products = state.products.filter(x => x.id !== id);
+        refreshAll();
+        removeFromCloud(p);
+        toast("Product deleted");
+      }
+    }
+  });
+
+  // ---------- QR generation ----------
+  function renderQR(text, name, sub, qrNo) {
+    const box = $("qrBox");
+    box.innerHTML = "";
+    if (typeof QRCode === "undefined") {
+      box.innerHTML = `<p class="error">QR library failed to load. Check your connection.</p>`;
+      return;
+    }
+    new QRCode(box, { text, width: 240, height: 240, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.H });
+    $("qrName").textContent = name;
+    $("qrNumber").textContent = qrNo ? "QR No: " + qrNo : "";
+    $("qrSub").textContent = sub;
+  }
+
+  function showProductQR(p) {
+    currentQR = { filename: p.qrNo || "QR" };
+    renderQR(productUrl(p), p.name, `SKU ${p.sku} · ${money(p.price)} · ${state.storeName}`, p.qrNo);
+  }
+
+  function qrDataURL() {
+    const c = $("qrBox").querySelector("canvas");
+    if (c) return c.toDataURL("image/png");
+    const i = $("qrBox").querySelector("img");
+    return i ? i.src : null;
+  }
+
+  $("downloadPng").addEventListener("click", () => {
+    const url = qrDataURL();
+    if (!url) return toast("Show a QR code first");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (currentQR?.filename || "QR") + ".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("PNG saved");
+  });
+
+  $("printQr").addEventListener("click", () => {
+    const url = qrDataURL();
+    if (!url) return toast("Show a QR code first");
+    const w = window.open("", "_blank");
+    if (!w) return toast("Allow pop-ups to print");
+    w.document.write(`<html><head><title>${esc($("qrName").textContent)}</title>
+      <style>body{font-family:system-ui;text-align:center;padding:30px}img{width:260px;max-width:90%}</style>
+      </head><body><h2>${esc(state.storeName)}</h2><p>Vadalure, Cuddalore, Tamil Nadu 607303</p>
+      <img src="${url}"><h3>${esc($("qrName").textContent)}</h3>
+      <p>${esc($("qrNumber").textContent)}</p><p>${esc($("qrSub").textContent)}</p>
+      <script>window.onload=()=>setTimeout(()=>window.print(),300);<\/script></body></html>`);
+    w.document.close();
+  });
+
+  $("customBtn").addEventListener("click", () => {
+    const txt = $("customText").value.trim();
+    if (!txt) return toast("Enter text or a URL");
+    currentQR = { filename: "QR_custom" };
+    renderQR(txt, "Custom QR", "Custom content", "");
+  });
+
+  // ---------- Add / edit form ----------
+  function resetForm() {
+    $("productForm").reset();
+    editingId = null;
+    $("formTitle").textContent = "Add product";
+    $("submitBtn").textContent = "Save & generate QR";
+    $("cancelEdit").style.display = "none";
+    $("formError").textContent = "";
+  }
+  $("cancelEdit").addEventListener("click", () => { resetForm(); showView("view-products"); });
+
+  $("productForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("pName").value.trim();
+    const sku = $("pSku").value.trim();
+    const price = parseFloat($("pPrice").value);
+    if (!name || !sku || isNaN(price) || price < 0) {
+      $("formError").textContent = "Enter name, SKU and a valid price.";
+      return;
+    }
+    if (state.products.some(p => p.sku.toLowerCase() === sku.toLowerCase() && p.id !== editingId)) {
+      $("formError").textContent = "This SKU already exists.";
+      return;
+    }
+    const data = {
+      name, sku, price,
+      category: $("pCategory").value,
+      stock: parseInt($("pStock").value || "0", 10),
+      desc: $("pDesc").value.trim()
+    };
+    let product;
+    if (editingId) {
+      product = state.products.find(p => p.id === editingId);
+      Object.assign(product, data);
+      toast("Product updated");
+    } else {
+      product = { id: state.nextId++, qrNo: "ARS-QR-" + String(state.nextQrSeq++).padStart(4, "0"), ...data };
+      state.products.push(product);
+      toast(`Saved · ${product.qrNo}`);
+    }
+    refreshAll();
+    syncProduct(product);
+    resetForm();
+    showProductQR(product);
+    showView("view-qr");
+  });
+
+  // ---------- Export ----------
+  $("exportBtn").addEventListener("click", () => {
+    const json = JSON.stringify({ store: state.storeName, exportedAt: new Date().toISOString(), products: state.products }, null, 2);
+    const a = document.createElement("a");
+    a.href = "data:application/json;charset=utf-8," + encodeURIComponent(json);
+    a.download = "ars-super-store-catalog.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    toast("Catalog exported");
+  });
+
+  $("syncAllBtn").addEventListener("click", syncAll);
+
+  $("storeName").addEventListener("change", () => { state.storeName = $("storeName").value.trim() || "ARS Super Store"; saveState(); });
+  $("storeUrl").addEventListener("change", () => { state.storeUrl = $("storeUrl").value.trim(); saveState(); });
+
+  // ---------- QR reader ----------
+  const video = $("camVideo");
+  const scanCanvas = $("scanCanvas");
+  const sctx = scanCanvas.getContext("2d", { willReadFrequently: true });
+  let stream = null, scanning = false, rafId = null;
+
+  function lookup(text) {
+    const raw = String(text || "").trim();
+    const box = $("readResult");
+    if (!raw) { toast("Nothing to read"); return; }
+    const found = state.products.find(p =>
+      raw === p.qrNo || raw.includes(p.qrNo) || raw.endsWith("/" + encodeURIComponent(p.qrNo))
+    );
+    if (found) {
+      box.innerHTML = `
+        <div class="big">${esc(found.name)}</div>
+        <div class="muted" style="margin-top:4px;"><span class="qr-no">${esc(found.qrNo)}</span> · SKU ${esc(found.sku)}</div>
+        <div style="margin-top:6px;font-weight:800;">${money(found.price)} · Stock: ${found.stock}</div>
+        <div class="muted">${esc(found.category)}${found.desc ? " · " + esc(found.desc) : ""}</div>
+        <div class="btn-row"><button class="btn sm" id="showFoundQr">Show this QR</button></div>`;
+      $("showFoundQr").addEventListener("click", () => { showProductQR(found); showView("view-qr"); });
+      toast("Product found");
+    } else {
+      const isUrl = /^https?:\/\//i.test(raw);
+      box.innerHTML = `
+        <div class="big">${esc(raw)}</div>
+        <p class="muted" style="margin-top:6px;">No matching product in the catalog.</p>
+        ${isUrl ? `<div class="btn-row"><a class="btn sm" href="${esc(raw)}" target="_blank" rel="noopener">Open link</a></div>` : ""}`;
+    }
+  }
+
+  async function startCam() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast("Camera not supported in this browser. Use Upload photo.");
+      return;
+    }
+    if (typeof jsQR === "undefined") { toast("QR library failed to load"); return; }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+    } catch (err) {
+      toast("Camera blocked. Allow camera access or use Upload photo.");
+      return;
+    }
+    video.srcObject = stream;
+    video.style.display = "block";
+    video.setAttribute("playsinline", "");
+    try { await video.play(); } catch (e) { /* autoplay handled by muted */ }
+    $("camHint").textContent = "Point the camera at a QR code…";
+    $("camStart").disabled = true;
+    $("camStop").disabled = false;
+    scanning = true;
+    scanLoop();
+  }
+
+  function stopCam() {
+    scanning = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    video.srcObject = null;
+    video.style.display = "none";
+    $("camHint").textContent = "Camera is off.";
+    $("camStart").disabled = false;
+    $("camStop").disabled = true;
+  }
+
+  function scanLoop() {
+    if (!scanning) return;
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      const w = video.videoWidth, h = video.videoHeight;
+      if (w && h) {
+        scanCanvas.width = w; scanCanvas.height = h;
+        sctx.drawImage(video, 0, 0, w, h);
+        const img = sctx.getImageData(0, 0, w, h);
+        const code = jsQR(img.data, w, h, { inversionAttempts: "dontInvert" });
+        if (code && code.data) {
+          stopCam();
+          lookup(code.data);
+          return;
+        }
+      }
+    }
+    rafId = requestAnimationFrame(scanLoop);
+  }
+
+  $("camStart").addEventListener("click", startCam);
+  $("camStop").addEventListener("click", stopCam);
+
+  $("qrFile").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (typeof jsQR === "undefined") { toast("QR library failed to load"); return; }
+    const img = new Image();
+    img.onload = () => {
+      const maxSide = 1600;
+      const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+      scanCanvas.width = Math.round(img.width * scale);
+      scanCanvas.height = Math.round(img.height * scale);
+      sctx.drawImage(img, 0, 0, scanCanvas.width, scanCanvas.height);
+      const d = sctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+      const code = jsQR(d.data, scanCanvas.width, scanCanvas.height, { inversionAttempts: "attemptBoth" });
+      if (code && code.data) {
+        lookup(code.data);
+      } else {
+        $("readResult").innerHTML = `<p class="muted">No QR code found in that photo. Try a closer, sharper picture.</p>`;
+        toast("No QR found");
+      }
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
+    e.target.value = "";
+  });
+
+  $("manualBtn").addEventListener("click", () => lookup($("manualQr").value));
+  $("manualQr").addEventListener("keydown", (e) => { if (e.key === "Enter") lookup($("manualQr").value); });
+
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopCam(); });
+
+  // ---------- Billing ----------
+  let cart = [];
+  let bills = [];
+  let lastBill = null;
+
+  function todayKey(d = new Date()) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function cartTotals() {
+    const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const val = Math.max(0, parseFloat($("billDiscount").value) || 0);
+    const raw = $("billDiscountType").value === "pct" ? sub * Math.min(val, 100) / 100 : val;
+    const disc = Math.round(Math.min(sub, raw) * 100) / 100;
+    return { sub, disc, total: sub - disc };
+  }
+
+  function renderBill() { renderSuggest(); renderCart(); renderSales(); }
+
+  function renderSuggest() {
+    const q = $("billSearch").value.trim().toLowerCase();
+    if (!q) { $("billSuggest").innerHTML = ""; return; }
+    const matches = state.products
+      .filter(p => [p.name, p.sku, p.qrNo].some(v => String(v || "").toLowerCase().includes(q)))
+      .slice(0, 6);
+    $("billSuggest").innerHTML = matches.length ? matches.map(p => `
+      <div class="product" data-add="${esc(p.qrNo)}" style="cursor:pointer;">
+        <div class="name">${esc(p.name)}</div>
+        <div class="meta"><span class="qr-no">${esc(p.qrNo)}</span> · ${money(p.price)} · Stock ${p.stock}</div>
+      </div>`).join("") : `<p class="muted">No product found.</p>`;
+  }
+
+  function addToCart(qrNo) {
+    const p = state.products.find(x => x.qrNo === qrNo);
+    if (!p) return toast("Product not found");
+    const line = cart.find(i => i.qrNo === qrNo);
+    const have = line ? line.qty : 0;
+    if (Number(p.stock) <= have) return toast("Out of stock. Only " + p.stock + " left.");
+    if (line) line.qty++;
+    else cart.push({ qrNo, name: p.name, sku: p.sku, price: Number(p.price), qty: 1 });
+    $("billSearch").value = "";
+    renderSuggest();
+    renderCart();
+  }
+
+  function renderCart() {
+    $("cartList").innerHTML = cart.length ? cart.map(i => `
+      <div class="product">
+        <div class="name">${esc(i.name)}</div>
+        <div class="meta">${money(i.price)} each · ${money(i.price * i.qty)}</div>
+        <div class="btn-row" style="align-items:center;">
+          <button class="btn sm ghost" data-cart="-" data-qr="${esc(i.qrNo)}">−</button>
+          <strong style="min-width:32px;text-align:center;">${i.qty}</strong>
+          <button class="btn sm ghost" data-cart="+" data-qr="${esc(i.qrNo)}">+</button>
+          <button class="btn sm danger" data-cart="x" data-qr="${esc(i.qrNo)}">Remove</button>
+        </div>
+      </div>`).join("") : `<p class="muted">No items yet. Search above to add products.</p>`;
+    const t = cartTotals();
+    $("cartSub").textContent = `Subtotal ${money(t.sub)} · Discount ${money(t.disc)}`;
+    $("cartTotal").textContent = money(t.total);
+  }
+
+  function renderSales() {
+    const today = todayKey();
+    const todays = bills.filter(b => b.day === today);
+    const total = todays.reduce((s, b) => s + Number(b.total || 0), 0);
+    $("salesSummary").innerHTML = `
+      <div class="stat"><strong>${todays.length}</strong><span>Bills today</span></div>
+      <div class="stat"><strong>${money(total)}</strong><span>Sales today</span></div>`;
+  }
+
+  async function loadBills() {
+    state.nextBillSeq = state.nextBillSeq || 1;
+    if (!cloudEnabled()) return;
+    try {
+      const res = await fetch(CLOUD_DB_URL.replace(/\/$/, "") + "/bills.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      bills = data ? Object.values(data) : [];
+      const maxSeq = Math.max(0, ...bills.map(b => parseInt(String(b.billNo).replace(/\D/g, ""), 10) || 0));
+      state.nextBillSeq = Math.max(state.nextBillSeq, maxSeq + 1);
+    } catch (err) {
+      bills = [];
+    }
+  }
+
+  function receiptHTML(b) {
+    const itemCount = b.items.reduce((s, i) => s + i.qty, 0);
+    const rows = b.items.map((i, idx) => `
+      <tr>
+        <td class="ix">${idx + 1}</td>
+        <td>${esc(i.name)}<div class="code">${esc(i.qrNo)}${i.sku ? " · " + esc(i.sku) : ""}</div></td>
+        <td class="c">${i.qty}</td>
+        <td class="r">${money(i.price)}</td>
+        <td class="r">${money(i.amount)}</td>
+      </tr>`).join("");
+    return `<html><head><title>${esc(b.billNo)}</title>
+      <style>
+        @page { size: 80mm auto; margin: 4mm; }
+        body { font-family: "Segoe UI", Arial, Helvetica, sans-serif; width: 300px; margin: 0 auto; padding: 14px 12px; font-size: 12px; color: #111827; }
+        .hdr { text-align: center; padding-bottom: 8px; border-bottom: 2px solid #111827; }
+        .hdr h1 { font-size: 19px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; color: #111827; }
+        .hdr .addr { font-size: 11px; color: #4b5563; margin-top: 3px; }
+        .title { text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 3px; color: #be185d; margin: 8px 0 6px; }
+        .meta { display: flex; justify-content: space-between; font-size: 11px; color: #374151; margin-bottom: 6px; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; text-align: left; border-top: 1px solid #111827; border-bottom: 1px solid #111827; padding: 4px 2px; }
+        td { padding: 5px 2px; vertical-align: top; font-size: 12px; border-bottom: 1px dashed #d1d5db; }
+        td.ix { width: 16px; color: #6b7280; }
+        td.c { text-align: center; width: 30px; }
+        td.r { text-align: right; white-space: nowrap; }
+        .code { font-size: 10px; color: #6b7280; margin-top: 1px; }
+        .summary { margin-top: 8px; border-top: 1px solid #111827; padding-top: 6px; }
+        .row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #374151; }
+        .total { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding: 8px 6px; background: #111827; color: #fff; font-size: 15px; font-weight: 700; }
+        .pay { font-size: 11px; color: #374151; margin-top: 8px; }
+        .foot { text-align: center; margin-top: 14px; padding-top: 10px; border-top: 1px dashed #9ca3af; }
+        .foot .thanks { font-size: 13px; font-weight: 700; color: #111827; }
+        .foot .sign { font-size: 11px; color: #4b5563; margin-top: 4px; letter-spacing: .5px; }
+        .foot .sign b { color: #111827; }
+      </style></head><body>
+      <div class="hdr">
+        <h1>${esc(b.store)}</h1>
+        <div class="addr">Vadalure, Cuddalore, Tamil Nadu 607303</div>
+      </div>
+      <div class="title">RETAIL INVOICE</div>
+      <div class="meta">
+        <div>Bill No: <b>${esc(b.billNo)}</b><br>${b.customer ? "Customer: " + esc(b.customer) : ""}</div>
+        <div style="text-align:right;">${new Date(b.date).toLocaleDateString("en-IN")}<br>${new Date(b.date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</div>
+      </div>
+      <table>
+        <tr><th>#</th><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amt</th></tr>
+        ${rows}
+      </table>
+      <div class="summary">
+        <div class="row"><span>Items</span><span>${itemCount}</span></div>
+        <div class="row"><span>Subtotal</span><span>${money(b.subtotal)}</span></div>
+        <div class="row"><span>Discount</span><span>-${money(b.discount)}</span></div>
+        ${b.offer ? `<div class="row"><span>Offer</span><span>${esc(b.offer)}</span></div>` : ""}
+      </div>
+      <div class="total"><span>TOTAL</span><span>${money(b.total)}</span></div>
+      <div class="pay">Paid by: ${esc(b.payment)}</div>
+      <div class="foot">
+        <div class="thanks">Thank you, visit again!</div>
+        <div class="sign">— <b>ANTHONY PRAKASH</b></div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>
+      </body></html>`;
+  }
+
+  function printReceipt(b) {
+    const w = window.open("", "_blank");
+    if (!w) return toast("Allow pop-ups to print the receipt");
+    w.document.write(receiptHTML(b));
+    w.document.close();
+  }
+
+  async function putProductQuiet(p) {
+    const url = `${CLOUD_DB_URL.replace(/\/$/, "")}/products/${encodeURIComponent(p.qrNo)}.json`;
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: p.id, qrNo: p.qrNo, name: p.name, sku: p.sku, category: p.category,
+        price: p.price, stock: p.stock, desc: p.desc || "", store: state.storeName,
+        qrUrl: productUrl(p), updatedAt: new Date().toISOString()
+      })
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+  }
+
+  async function completeBill() {
+    if (!cart.length) return toast("Add products to the cart first");
+    const t = cartTotals();
+    const now = new Date();
+    const billNo = "ARS-BILL-" + String(state.nextBillSeq++).padStart(4, "0");
+    const bill = {
+      billNo,
+      date: now.toISOString(),
+      day: todayKey(now),
+      store: state.storeName,
+      items: cart.map(i => ({ qrNo: i.qrNo, name: i.name, sku: i.sku, price: i.price, qty: i.qty, amount: i.price * i.qty })),
+      subtotal: t.sub,
+      discount: t.disc,
+      offer: $("billOffer").value.trim(),
+      total: t.total,
+      payment: $("billPayment").value,
+      customer: $("billCustomer").value.trim()
+    };
+
+    // Reduce stock for each item sold
+    const touched = [];
+    bill.items.forEach(it => {
+      const p = state.products.find(x => x.qrNo === it.qrNo);
+      if (p) {
+        p.stock = Math.max(0, Number(p.stock) - it.qty);
+        touched.push(p);
+      }
+    });
+
+    bills.push(bill);
+    lastBill = bill;
+    cart = [];
+    $("billDiscount").value = 0;
+    $("billCustomer").value = "";
+    $("billOffer").value = "";
+    refreshAll();
+    renderCart();
+    renderSales();
+    $("receiptMeta").textContent = `${billNo} · ${money(bill.total)} · ${bill.payment}`;
+    $("receiptCard").style.display = "block";
+
+    let uploaded = true;
+    if (cloudEnabled()) {
+      try {
+        const res = await fetch(`${CLOUD_DB_URL.replace(/\/$/, "")}/bills/${encodeURIComponent(billNo)}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bill)
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        for (const p of touched) await putProductQuiet(p);
+      } catch (err) {
+        uploaded = false;
+      }
+    }
+    toast(uploaded ? `Bill ${billNo} saved ✓` : `Bill ${billNo} saved on this phone only (upload failed)`);
+    printReceipt(bill);
+  }
+
+  $("billSearch").addEventListener("input", renderSuggest);
+  $("billSearch").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const v = $("billSearch").value.trim().toLowerCase();
+    const exact = state.products.find(p => p.qrNo.toLowerCase() === v || p.sku.toLowerCase() === v);
+    if (exact) addToCart(exact.qrNo);
+    else toast("No product with that QR No or SKU");
+  });
+  $("billSuggest").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-add]");
+    if (b) addToCart(b.dataset.add);
+  });
+  $("cartList").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-cart]");
+    if (!b) return;
+    const line = cart.find(i => i.qrNo === b.dataset.qr);
+    if (!line) return;
+    const p = state.products.find(x => x.qrNo === b.dataset.qr);
+    const act = b.dataset.cart;
+    if (act === "+") {
+      if (p && line.qty >= Number(p.stock)) return toast("Only " + p.stock + " in stock");
+      line.qty++;
+    } else if (act === "-") {
+      line.qty--;
+      if (line.qty <= 0) cart = cart.filter(i => i !== line);
+    } else {
+      cart = cart.filter(i => i !== line);
+    }
+    renderCart();
+  });
+  $("billDiscount").addEventListener("input", renderCart);
+  $("billDiscountType").addEventListener("change", renderCart);
+  $("clearCart").addEventListener("click", () => { cart = []; renderCart(); });
+  $("completeBill").addEventListener("click", completeBill);
+  $("printReceipt").addEventListener("click", () => { if (lastBill) printReceipt(lastBill); });
+
+  // ---------- Billing scanner ----------
+  let billStream = null, billScanning = false, billRaf = null, billDetector = null;
+  let lastScan = { code: "", at: 0 };
+
+  function getBillDetector() {
+    if (billDetector !== null) return billDetector;
+    try {
+      billDetector = ("BarcodeDetector" in window) ? new BarcodeDetector({ formats: ["qr_code"] }) : false;
+    } catch (e) { billDetector = false; }
+    return billDetector;
+  }
+
+  function setBillWarn(msg) { $("billScanWarn").textContent = msg || ""; }
+
+  function decodeBillCanvas(w, h) {
+    const ctx = $("billCanvas").getContext("2d", { willReadFrequently: true });
+    const img = ctx.getImageData(0, 0, w, h);
+    const code = jsQR(img.data, w, h, { inversionAttempts: "attemptBoth" });
+    return code && code.data ? code.data : null;
+  }
+
+  function handleScannedCode(text) {
+    const raw = String(text || "").trim();
+    const now = Date.now();
+    // Ignore the same code if it is read again within 2.5 seconds
+    if (raw === lastScan.code && now - lastScan.at < 2500) return;
+    lastScan = { code: raw, at: now };
+
+    const p = state.products.find(x => raw === x.qrNo || raw.includes(x.qrNo));
+    if (!p) {
+      setBillWarn("Not a product QR: " + raw);
+      toast("Product not found in catalog");
+      return;
+    }
+    setBillWarn("");
+    if (navigator.vibrate) navigator.vibrate(60);
+    addToCart(p.qrNo);
+    toast(p.name + " added to cart");
+  }
+
+  async function billScanLoop() {
+    if (!billScanning) return;
+    const v = $("billVideo");
+    if (v.readyState >= 2 && v.videoWidth) {
+      let text = null;
+      const det = getBillDetector();
+      if (det) {
+        try {
+          const codes = await det.detect(v);
+          if (codes.length) text = codes[0].rawValue;
+        } catch (e) {}
+      }
+      if (!text && typeof jsQR !== "undefined") {
+        const w = v.videoWidth, h = v.videoHeight;
+        const c = $("billCanvas");
+        c.width = w; c.height = h;
+        c.getContext("2d", { willReadFrequently: true }).drawImage(v, 0, 0, w, h);
+        text = decodeBillCanvas(w, h);
+      }
+      if (text) handleScannedCode(text);
+    }
+    billRaf = requestAnimationFrame(billScanLoop);
+  }
+
+  async function startBillScan() {
+    setBillWarn("");
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setBillWarn("Camera needs an https page. Use Upload QR photo or type the QR No in the search box.");
+      return;
+    }
+    if (!getBillDetector() && typeof jsQR === "undefined") {
+      setBillWarn("Scanner not available on this browser. Use Upload QR photo or type the QR No.");
+      return;
+    }
+    try {
+      billStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+    } catch (err) {
+      setBillWarn(err.name === "NotAllowedError"
+        ? "Camera permission denied. Allow camera in your browser settings."
+        : "Camera could not start (" + err.name + ").");
+      return;
+    }
+    const v = $("billVideo");
+    v.srcObject = billStream;
+    v.style.display = "block";
+    v.setAttribute("playsinline", "");
+    try { await v.play(); } catch (e) {}
+    $("billScanHint").textContent = "Point the camera at product QR codes. Each scan adds to the cart.";
+    $("billScanStart").disabled = true;
+    $("billScanStop").disabled = false;
+    billScanning = true;
+    billScanLoop();
+  }
+
+  function stopBillScan() {
+    billScanning = false;
+    if (billRaf) cancelAnimationFrame(billRaf);
+    if (billStream) { billStream.getTracks().forEach(t => t.stop()); billStream = null; }
+    const v = $("billVideo");
+    if (v) { v.srcObject = null; v.style.display = "none"; }
+    if ($("billScanHint")) $("billScanHint").textContent = "Scanner is off.";
+    if ($("billScanStart")) $("billScanStart").disabled = false;
+    if ($("billScanStop")) $("billScanStop").disabled = true;
+  }
+
+  $("billScanStart").addEventListener("click", startBillScan);
+  $("billScanStop").addEventListener("click", stopBillScan);
+
+  $("billQrFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    let text = null;
+    const det = getBillDetector();
+    if (det) {
+      try {
+        const bmp = await createImageBitmap(file);
+        const codes = await det.detect(bmp);
+        if (codes.length) text = codes[0].rawValue;
+      } catch (err) {}
+    }
+    if (!text && typeof jsQR !== "undefined") {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      await new Promise(r => { img.onload = r; img.onerror = r; img.src = url; });
+      const s = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const c = $("billCanvas");
+      c.width = Math.round(img.width * s);
+      c.height = Math.round(img.height * s);
+      c.getContext("2d", { willReadFrequently: true }).drawImage(img, 0, 0, c.width, c.height);
+      text = decodeBillCanvas(c.width, c.height);
+      URL.revokeObjectURL(url);
+    }
+    if (text) handleScannedCode(text);
+    else toast("No QR code found in that photo");
+  });
+
+  // ---------- Init ----------
+  (async function init() {
+    loadState();
+
+    // Firebase is the master copy: load the latest list from it every time
+    if (cloudEnabled()) {
+      try {
+        const res = await fetch(CLOUD_DB_URL.replace(/\/$/, "") + "/products.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        state.products = data ? Object.values(data) : [];
+        $("cloudStatus").textContent = "✓ Cloud connected · " + state.products.length + " products saved";
+        $("cloudStatus").style.color = "#15803d";
+      } catch (err) {
+        $("cloudStatus").textContent = "⚠ Not connected to cloud · showing phone copy";
+        $("cloudStatus").style.color = "#dc2626";
+      }
+    } else {
+      $("cloudStatus").textContent = "⚠ Cloud database not set in code";
+      $("cloudStatus").style.color = "#dc2626";
+    }
+
+    // Make sure new IDs and QR numbers never clash with existing ones
+    const maxId = Math.max(0, ...state.products.map(p => Number(p.id) || 0));
+    let nextId = maxId + 1;
+    state.products.forEach(p => { if (!p.id) p.id = nextId++; });
+    state.nextId = Math.max(state.nextId || 1, nextId);
+
+    const maxSeq = Math.max(0, ...state.products.map(p => parseInt(String(p.qrNo).replace(/\D/g, ""), 10) || 0));
+    state.nextQrSeq = Math.max(state.nextQrSeq || 1, maxSeq + 1);
+
+    await loadBills();
+    $("storeName").value = state.storeName;
+    $("storeUrl").value = state.storeUrl;
+    refreshAll();
+    if (state.products.length) showProductQR(state.products[0]);
+  })();
+})();
+</script>
+</body>
+</html>
